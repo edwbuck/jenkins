@@ -30,6 +30,7 @@ import hudson.util.ProcessTree;
 import hudson.util.StreamTaskListener;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.nio.charset.Charset;
 
 import jenkins.security.MasterToSlaveCallable;
 import org.apache.commons.io.FileUtils;
@@ -65,7 +66,7 @@ public class LauncherTest {
             assertTrue("Join did not finish promptly. The completion time (" + terminationTime + "ms) is longer than expected 15s", terminationTime < 15000);
             channels.french.call(new NoopCallable()); // this only returns after the other side of the channel has finished executing cancellation
             Thread.sleep(2000); // more delay to make sure it's gone
-            assertNull("process should be gone",ProcessTree.get().get(Integer.parseInt(FileUtils.readFileToString(tmp).trim())));
+            assertNull("process should be gone",ProcessTree.get().get(Integer.parseInt(FileUtils.readFileToString(tmp, Charset.defaultCharset()).trim())));
 
             // Manual version of test: set up instance w/ one slave. Now in script console
             // new hudson.FilePath(new java.io.File("/tmp")).createLauncher(new hudson.util.StreamTaskListener(System.err)).
@@ -73,7 +74,7 @@ public class LauncherTest {
             // returns immediately and pgrep sleep => nothing. But without fix
             // hudson.model.Hudson.instance.nodes[0].rootPath.createLauncher(new hudson.util.StreamTaskListener(System.err)).
             //   launch().cmds("sleep", "1d").stdout(System.out).stderr(System.err).start().kill()
-            // hangs and on slave machine pgrep sleep => one process; after manual kill, script returns.
+            // hangs and on agent machine pgrep sleep => one process; after manual kill, script returns.
     }
 
     private static class NoopCallable extends MasterToSlaveCallable<Object,RuntimeException> {
@@ -101,10 +102,10 @@ public class LauncherTest {
         TaskListener listener = new StreamBuildListener(output);
         Launcher remoteLauncher = new Launcher.RemoteLauncher(listener, FilePath.localChannel, false);
         Launcher decorated = remoteLauncher.decorateByEnv(new EnvVars());
-        assertEquals(false, decorated.isUnix());
+        assertFalse(decorated.isUnix());
         remoteLauncher = new Launcher.RemoteLauncher(listener, FilePath.localChannel, true);
         decorated = remoteLauncher.decorateByEnv(new EnvVars());
-        assertEquals(true, decorated.isUnix());
+        assertTrue(decorated.isUnix());
     }
 
     @Issue("JENKINS-18368")
@@ -113,10 +114,10 @@ public class LauncherTest {
         TaskListener listener = new StreamBuildListener(output);
         Launcher remoteLauncher = new Launcher.RemoteLauncher(listener, FilePath.localChannel, false);
         Launcher decorated = remoteLauncher.decorateByPrefix("test");
-        assertEquals(false, decorated.isUnix());
+        assertFalse(decorated.isUnix());
         remoteLauncher = new Launcher.RemoteLauncher(listener, FilePath.localChannel, true);
         decorated = remoteLauncher.decorateByPrefix("test");
-        assertEquals(true, decorated.isUnix());
+        assertTrue(decorated.isUnix());
     }
 
 }

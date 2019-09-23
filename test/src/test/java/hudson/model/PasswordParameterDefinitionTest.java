@@ -31,7 +31,6 @@ import java.io.IOException;
 import jenkins.model.Jenkins;
 import static org.junit.Assert.assertEquals;
 
-import jenkins.security.apitoken.ApiTokenPropertyConfiguration;
 import jenkins.security.apitoken.ApiTokenTestHelper;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,8 +70,9 @@ public class PasswordParameterDefinitionTest {
         User admin = User.getById("admin", true);
         User dev = User.getById("dev", true);
 
-        JenkinsRule.WebClient wc = j.createWebClient();
-        wc.getOptions().setThrowExceptionOnFailingStatusCode(false); // ParametersDefinitionProperty/index.jelly sends a 405 but really it is OK
+        JenkinsRule.WebClient wc = j.createWebClient()
+                // ParametersDefinitionProperty/index.jelly sends a 405 but really it is OK
+                .withThrowExceptionOnFailingStatusCode(false);
         // Control case: admin can use default value.
         j.submit(wc.withBasicApiToken(admin).getPage(p, "build?delay=0sec").getFormByName("parameters"));
         j.waitUntilNoActivity();

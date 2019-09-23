@@ -2,7 +2,6 @@ package hudson.model;
 
 import static org.junit.Assert.*;
 
-import java.lang.reflect.Method;
 
 import org.hamcrest.CoreMatchers;
 import org.junit.Test;
@@ -17,7 +16,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import hudson.EnvVars;
 import hudson.Platform;
-import hudson.util.ReflectionUtils;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ Node.class, Platform.class })
@@ -49,7 +47,7 @@ public class JobTest {
     @Issue("JENKINS-14807")
     @Test
     public void use_slave_platform_path_separator_when_contribute_path() throws Throwable {
-        // mock environment to simulate EnvVars of slave node with different platform than master
+        // mock environment to simulate EnvVars of agent node with different platform than master
         Platform slavePlatform = Platform.current() == Platform.UNIX ? Platform.WINDOWS : Platform.UNIX;
         PowerMockito.mockStatic(Platform.class);
         Mockito.when(Platform.current()).thenReturn(slavePlatform);
@@ -80,7 +78,7 @@ public class JobTest {
         String path = "/test";
         env.override("PATH+TEST", path);
 
-        assertThat("The contributed PATH was not joined using the path separator defined in slave node", //
+        assertThat("The contributed PATH was not joined using the path separator defined in agent node", //
                 env.get("PATH"), //
                 CoreMatchers.containsString(path + (slavePlatform == Platform.WINDOWS ? ';' : ':')));
     }

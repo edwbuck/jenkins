@@ -40,7 +40,6 @@ import java.io.File;
 import java.net.URL;
 import java.util.Arrays;
 import jenkins.model.Jenkins;
-import jenkins.security.apitoken.ApiTokenPropertyConfiguration;
 import jenkins.security.apitoken.ApiTokenTestHelper;
 import org.acegisecurity.context.SecurityContext;
 import org.acegisecurity.context.SecurityContextHolder;
@@ -191,9 +190,10 @@ public class ItemsTest {
         /** Use the REST command to create an empty project (normally used only from the UI in the New Item dialog). */
         REST_EMPTY {
             @Override void run(JenkinsRule r, String target) throws Exception {
-                JenkinsRule.WebClient wc = wc(r);
-                wc.getOptions().setRedirectEnabled(false);
-                wc.getOptions().setThrowExceptionOnFailingStatusCode(false); // redirect perversely counts as a failure
+                JenkinsRule.WebClient wc = wc(r)
+                        // redirect perversely counts as a failure
+                        .withRedirectEnabled(false)
+                        .withThrowExceptionOnFailingStatusCode(false);
                 WebResponse webResponse = wc.getPage(new WebRequest(new URL(wc.getContextPath() + "createItem?name=" + target + "&mode=hudson.model.FreeStyleProject"), HttpMethod.POST)).getWebResponse();
                 if (webResponse.getStatusCode() != HttpStatus.SC_MOVED_TEMPORARILY) {
                     throw new FailingHttpStatusCodeException(webResponse);
@@ -204,9 +204,9 @@ public class ItemsTest {
         REST_COPY {
             @Override void run(JenkinsRule r, String target) throws Exception {
                 r.createFreeStyleProject("dupe");
-                JenkinsRule.WebClient wc = wc(r);
-                wc.getOptions().setRedirectEnabled(false);
-                wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
+                JenkinsRule.WebClient wc = wc(r)
+                        .withRedirectEnabled(false)
+                        .withThrowExceptionOnFailingStatusCode(false);
                 WebResponse webResponse = wc.getPage(new WebRequest(new URL(wc.getContextPath() + "createItem?name=" + target + "&mode=copy&from=dupe"), HttpMethod.POST)).getWebResponse();
                 r.jenkins.getItem("dupe").delete();
                 if (webResponse.getStatusCode() != HttpStatus.SC_MOVED_TEMPORARILY) {
@@ -228,9 +228,9 @@ public class ItemsTest {
         REST_RENAME {
             @Override void run(JenkinsRule r, String target) throws Exception {
                 r.createFreeStyleProject("dupe");
-                JenkinsRule.WebClient wc = wc(r);
-                wc.getOptions().setRedirectEnabled(false);
-                wc.getOptions().setThrowExceptionOnFailingStatusCode(false);
+                JenkinsRule.WebClient wc = wc(r)
+                        .withRedirectEnabled(false)
+                        .withThrowExceptionOnFailingStatusCode(false);
                 WebResponse webResponse = wc.getPage(new WebRequest(new URL(wc.getContextPath() + "job/dupe/doRename?newName=" + target), HttpMethod.POST)).getWebResponse();
                 if (webResponse.getStatusCode() != HttpStatus.SC_MOVED_TEMPORARILY) {
                     r.jenkins.getItem("dupe").delete();
